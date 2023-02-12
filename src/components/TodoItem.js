@@ -1,31 +1,97 @@
 import React from "react";
 import '../App.css';
-import RemoveDialog from './RemoveDialog';
-import EditDialog from './EditDialog';
+import { Button } from "@mui/material";
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
+import TextField from '@mui/material/TextField';
+
+
 
 
 class TodoItem extends React.Component {
+    
     state = {
-        isDone: false
+        openRemove: false,
+        openEdit: false,
+        editValue: this.props.data
     }
+
+    handleClose = () => {
+        this.setState({openRemove: false, openEdit: false})
+    }
+
     onClickRemove = () => {
-        this.props.onRemoveClick(this.props.id);
-    };
-
-    onClickEdit = (value) => {
-        this.props.onEditClick(this.props.id, value);
+        this.setState({openRemove: true})
     }
 
-    onClickListItem = () => {
-        this.setState({isDone: !this.state.isDone})
+    onClickEdit = () => {
+        this.setState({openEdit: true})
+    }
+
+    onEditChange = (e) => {
+        this.setState({editValue: e.target.value})
     }
 
     render() {
         return (
-            <li onClick={this.onClickListItem}>
-                <span onClick={this.onClickListItem} className={this.state.isDone ? "checked": "isNotChecked"}>{this.props.data} </span>
-                <EditDialog data={this.props.data} onClick={this.onClickEdit}/>
-                <RemoveDialog onClick={this.onClickRemove}/>         
+            <li>
+                <span onClick={this.props.onClickListItem} className={this.props.status ? "checked": "isNotChecked"}>{this.props.data} </span>
+                <Dialog onKeyUp={(e) => {
+                            if(e.key==="Enter") {
+                                this.props.onEditClick(this.state.editValue)
+                                this.setState({openEdit: false});    
+                            }
+                            // this.setState({openEdit: false});
+                        }}
+                        open={this.state.openEdit} 
+                        onClose={this.handleClose}>
+                    <DialogTitle>Edit task</DialogTitle>
+                    <DialogContent>
+                        <TextField
+                                autoFocus
+                                margin="dense"
+                                id="name"
+                                onChange={this.onEditChange}
+                                type="text"
+                                fullWidth
+                                variant="standard"
+                                value = {this.state.editValue}
+                            />
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={this.handleClose}>Cancel</Button>
+                        <Button onClick={() => {
+                                            this.props.onEditClick(this.state.editValue)
+                                            this.setState({openEdit: false});
+                                        }}>Save</Button>
+                    </DialogActions>
+                </Dialog>
+                <Button variant="outlined" onClick={this.onClickEdit}>Edit</Button>  
+
+                <Dialog
+                    onKeyDown={this.props.onKeyDownRemove}
+                    open={this.state.openRemove}
+                    onClose={this.handleClose}
+                    aria-labelledby="alert-dialog-title"
+                    aria-describedby="alert-dialog-description"
+                    >
+                    <DialogTitle id="alert-dialog-title">
+                        Delete task
+                    </DialogTitle>
+                    <DialogContent>
+                        <DialogContentText id="alert-dialog-description">
+                        {`Are you sure you want to delete ${this.props.data}?`}
+                        </DialogContentText>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={this.handleClose}>No</Button>
+                        <Button onClick={this.props.onRemoveClick} autoFocus>Yes</Button>
+                    </DialogActions>
+                </Dialog>
+                <Button variant="outlined" onClick={this.onClickRemove}>Remove</Button>      
             </li>
         )
     }
